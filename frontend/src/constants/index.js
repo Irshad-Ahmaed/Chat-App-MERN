@@ -3,4 +3,6 @@ export const THEMES = [
     "dark",
     "cupcake",
     "retro",
+    "black",
+    "dracula"
 ]
