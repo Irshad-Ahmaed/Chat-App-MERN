@@ -42,7 +42,7 @@ const ChatContainer = () => {
   return (
     <div className="flex flex-1 flex-col overflow-auto">
       <ChatHeader/>
-      <div className="flex-1 max-h-[40rem] overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 max-h-[28rem] lg:max-h-[40rem] overflow-y-auto p-4 space-y-4">
         {messages.map((message) => (
           <div
             key={message._id}
@@ -62,12 +62,12 @@ const ChatContainer = () => {
                 {message.image && (
                   <img src={message.image} 
                     alt="message_image"
-                    className="sm:max-w-[200px] rounded-md mb-2"
+                    className="max-w-[150px] lg:max-w-[200px] rounded-md"
                   />
                 )}
 
                 {message.text && (
-                  <span className="font-semibold pl-1">{message.text}</span>
+                  <span className={`text-xs lg:text-sm pl-1 ${message.image && 'pt-1'}`}>{message.text}</span>
                 )}
               </div>
             </div>

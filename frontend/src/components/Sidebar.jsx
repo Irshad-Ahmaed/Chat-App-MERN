@@ -21,7 +21,7 @@ const Sidebar = () => {
   if (isUserLoading) return <SidebarSkeleton />;
 
   return (
-    <aside className="h-full border-r border-base-300 w-20 lg:w-72 flex flex-col transition-all duration-200">
+    <aside className={`${selectedUser ? 'hidden lg:block' : 'block'} h-full border-r border-base-300 w-20 lg:w-72 flex flex-col transition-all duration-200`}>
       <div className="border-b border-base-300 w-full p-5">
         <div className="flex items-center gap-2">
           <Users className="size-6" />
