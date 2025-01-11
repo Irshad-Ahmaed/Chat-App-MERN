@@ -42,7 +42,7 @@ const ChatContainer = () => {
   return (
     <div className="flex h-full flex-1 flex-col overflow-auto">
       <ChatHeader/>
-      <div className="flex-1 max-h-[30rem] md:max-h-[35rem] lg:max-h-[40rem] overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 max-h-[30rem] md:max-h-[35rem] lg:max-h-[44rem] overflow-y-auto p-4 space-y-4">
         {messages.map((message) => (
           <div
             key={message._id}
