@@ -15,6 +15,20 @@ export const getUsersForSidebar = async(req, res) => {
     }
 }
 
+// TODO: Improve Connection Request
+// export const getConnectionRequest = async(req, res)=> {
+//     try {
+//         const userId = req.user._id;
+//         const {id: userToChatId} = req.params;
+//         const addingUserToChat = await User.findByIdAndUpdate(userId, {connections: userToChatId}, {new:true});
+
+//         res.status(201).json(addingUserToChat);
+//     } catch (error) {
+//         console.log("Error in Connecting User Profile", error.message);
+//         res.status(500).json({error: "Internal Server Error"}); 
+//     }
+// }
+
 export const getMessages = async(req, res) => {
     try {
         const {id: userToChatId} = req.params; // Id of the user whom we want to chat

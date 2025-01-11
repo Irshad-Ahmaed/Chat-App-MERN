@@ -5,7 +5,7 @@ import { Users } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
 
 const Sidebar = () => {
-  const { getUsers, users, selectedUser, setSelectedUser, isUserLoading } = useChatStore();
+  const { getUsers, users, selectedUser, setSelectedUser, isUserLoading, messages, isMessagesLoading } = useChatStore();
 
   const {onlineUsers} = useAuthStore();
   const [showOnlineOnly, setShowOnlineOnly] = useState(false);
@@ -21,7 +21,7 @@ const Sidebar = () => {
   if (isUserLoading) return <SidebarSkeleton />;
 
   return (
-    <aside className={`${selectedUser ? 'hidden lg:block' : 'block'} h-full border-r border-base-300 w-20 lg:w-72 flex flex-col transition-all duration-200`}>
+    <aside className={`${selectedUser ? 'hidden lg:block' : 'block'} h-full border-r border-base-300 w-full md:w-60 lg:w-72 flex flex-col transition-all duration-200`}>
       <div className="border-b border-base-300 w-full p-5">
         <div className="flex items-center gap-2">
           <Users className="size-6" />
@@ -53,7 +53,7 @@ const Sidebar = () => {
               ${selectedUser?._id === user._id ? "bg-base-300 ring-1 ring-base-300" : ""}
             `}
           >
-            <div className="relative mx-auto lg:mx-0">
+            <div className="relative mx-0">
               <img
                 src={user.profilePic || "/avatar.png"}
                 alt={user.name}
@@ -68,7 +68,7 @@ const Sidebar = () => {
             </div>
 
             {/* User info - only visible on larger screens */}
-            <div className="hidden lg:block text-left min-w-0">
+            <div className="block lg:block text-left min-w-0">
               <div className="font-medium truncate">{user.fullName}</div>
               <div className="text-sm text-zinc-400">
                 {onlineUsers.includes(user._id) ? "Online" : "Offline"}

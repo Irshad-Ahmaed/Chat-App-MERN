@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
 const userSchema = new mongoose.Schema(
     {
@@ -20,6 +20,14 @@ const userSchema = new mongoose.Schema(
             type: String,
             default: "",
         },
+        connections: [{
+            type: Schema.Types.ObjectId,
+            ref: "User"
+        }],
+        connectionRequests:[{
+            type: Schema.Types.ObjectId,
+            ref: "User"
+        }]
     },
     {
         timestamps:  true
