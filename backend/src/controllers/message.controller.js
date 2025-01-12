@@ -51,7 +51,6 @@ export const sendMessage = async(req, res) => {
     const {text, image} = req.body;
 
     try {
-        console.log(text);
         const {id: receiverId} = req.params;
         const senderId = req.user._id;
 
@@ -69,13 +68,13 @@ export const sendMessage = async(req, res) => {
             image: imageUrl,
         });
 
+        await newMessage.save();
+
         // realtime socket.io functionality
         const receiverSocketId = getReceiverSocketId(receiverId);
         if(receiverSocketId){
             io.to(receiverSocketId).emit("newMessage", newMessage)
         }
-
-        await newMessage.save();
 
         res.status(201).json(newMessage);
     } catch (error) {

@@ -23,9 +23,7 @@ const ChatContainer = () => {
   useLayoutEffect(()=> {
     const scrollToEnd = ()=> {
       if(messageEndRef.current && messages){
-        setTimeout(() => { 
-          messageEndRef.current.scrollIntoView({ behavior: 'smooth' }); 
-        }, 100);
+        messageEndRef.current.scrollIntoView({ behavior: 'smooth' }); 
       };
     }
 
