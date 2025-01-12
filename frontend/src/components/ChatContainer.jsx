@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useChatStore } from "../store/useChatStore";
 import ChatHeader from "./ChatHeader";
 import MessageSkeleton from "./skeletons/MessageSkeleton";
@@ -20,14 +20,16 @@ const ChatContainer = () => {
     return ()=> unsubscribeToMessages();
   }, [selectedUser._id, getMessage, subscribeToMessages, unsubscribeToMessages]);
 
-  useLayoutEffect(()=> {
+  useEffect(()=> {
     const scrollToEnd = ()=> {
       if(messageEndRef.current && messages){
-        messageEndRef.current.scrollIntoView({ behavior: 'smooth' }); 
+        setTimeout(() => { 
+          messageEndRef.current.scrollIntoView({ behavior: 'smooth' }); 
+        }, 100);
       };
     }
 
-    scrollToEnd();
+    return()=> scrollToEnd();
   }, [messages])
 
   if(isMessagesLoading) return(
