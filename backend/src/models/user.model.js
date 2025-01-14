@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema(
         connectionRequests:[{
             type: Schema.Types.ObjectId,
             ref: "User"
-        }]
+        }],
     },
     {
         timestamps:  true

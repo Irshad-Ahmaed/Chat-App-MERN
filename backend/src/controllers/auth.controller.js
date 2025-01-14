@@ -2,6 +2,7 @@ import { generateToken } from "../lib/utils.js";
 import User from "../models/user.model.js";
 import bcrypt from 'bcryptjs'
 import cloudinary from '../lib/cloudinary.js'
+import OnlineAT from "../models/onlineAt.model.js";
 
 export const signup = async (req, res)=> {
     const {email, fullName, password} = req.body;
@@ -68,6 +69,15 @@ export const login = async(req, res)=> {
 
         generateToken(user._id, res);
 
+        const isUserTimeExists = await OnlineAT.findOne({userId: user._id})
+        if(!isUserTimeExists){
+            const userLastOnline = new OnlineAT({
+                userId: user._id,
+                lastOnlineAt: new Date(),
+            });
+            await userLastOnline.save();
+        }
+
         res.status(200).json({
             _id: user._id,
             fullName: user.fullName,
@@ -111,9 +121,13 @@ export const updateProfile = async(req, res)=>{
     }
 }
 
-export const checkAuth = (req, res) =>{
+export const checkAuth = async(req, res) =>{
     try {
-        res.status(200).json(req.user);
+        const user = req.user;
+        // await OnlineAT.findOneAndUpdate({userId: user._id}, {lastOnlineAt: new Date()}, {new: true});
+        // const usersOnlineAt = await OnlineAT.find({userId: {$ne: user._id}});
+        res.status(200).json({user});
+        
     } catch (error) {
         console.log("Error in checkAuth controller", error.message);
         res.status(500).json({error: "Internal Server Error"});
