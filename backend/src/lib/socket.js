@@ -2,7 +2,6 @@ import { Server } from "socket.io";
 import http from "http";
 import express from 'express';
 import OnlineAT from "../models/onlineAt.model.js";
-import { console } from "inspector";
 
 const app = express();
 const server = http.createServer(app);
@@ -25,7 +24,14 @@ io.on("connection", async (socket) => {
     console.log("A user connected", socket.id);
 
     const userId = socket.handshake.query.userId;
-    if (userId) userSocketMap[userId] = socket.id;
+    if (userId) {
+        // If user is already connected, disconnect the previous socket
+        // if (userSocketMap[userId]) { 
+        //     io.to(userSocketMap[userId]).emit('duplicate_connection', 'You have been disconnected due to a new connection.'); 
+        //     io.sockets.sockets.get(userSocketMap[userId])?.disconnect(); 
+        // } 
+        userSocketMap[userId] = socket.id;
+    }
 
     const isUserTimeExists = await OnlineAT.findOne({ userId: userId });
     if (isUserTimeExists) await OnlineAT.findOneAndUpdate({ userId: userId }, { lastOnlineAt: new Date() }, { new: true });

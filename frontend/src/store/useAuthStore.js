@@ -130,12 +130,10 @@ export const useAuthStore = create((set, get)=> ({
         });
 
         // Listen for receive_message event
-        newSocket.on('receive_message', (data) => { 
-            const addMessage = useChatStore.getState().addMessage; 
-            addMessage(data.message); 
-            // Optionally, show a notification 
+        newSocket.on('receive_message', (data) => {
+            // show a notification 
             if (Notification.permission === 'granted') { 
-                new Notification(data.message.content, { body: data.message.content, }); 
+                new Notification("New Message", { body: data?.message?.text }); 
             } 
         });
     },
