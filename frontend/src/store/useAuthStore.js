@@ -8,6 +8,8 @@ const BASE_URL = import.meta.env.MODE === "development" ? "http://localhost:5000
 
 export const useAuthStore = create((set, get)=> ({
     authUser: null,
+    createdAt: null,
+    updatedAt: null,
     isSigningUp: false,
     isLoggingIn: false,
     isUpdatingProfile: false,
@@ -24,9 +26,11 @@ export const useAuthStore = create((set, get)=> ({
             const res = await axiosInstance.get("/auth/check");
             set({
                 authUser: res.data.user,
+                createdAt: res.data.user.createdAt, 
+                updatedAt: res.data.user.updatedAt,
                 // lastTimeUsersOnline: res.data.usersOnlineAt,
             });
-
+            console.log("res", res.data)
             get().connectSocket();
         } catch (error) {
             console.log(error)
@@ -55,7 +59,11 @@ export const useAuthStore = create((set, get)=> ({
         set({isLoggingIn: true});
         try {
             const res = await axiosInstance.post('/auth/login', data);
-            set({authUser: res.data});
+            set({
+                authUser: res.data,
+                createdAt: res.data.createdAt, 
+                updatedAt: res.data.updatedAt
+            });
             toast.success("Logged in successfully");
             
             // window.location.reload();

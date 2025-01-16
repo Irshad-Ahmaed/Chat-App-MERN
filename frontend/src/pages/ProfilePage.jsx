@@ -3,7 +3,7 @@ import { useAuthStore } from '../store/useAuthStore';
 import {Camera, Mail, User} from 'lucide-react';
 
 const ProfilePage = () => {
-    const { authUser, isUpdatingProfile, updateProfile, createdAt } = useAuthStore();
+    const { authUser, isUpdatingProfile, updateProfile, createdAt, updatedAt } = useAuthStore();
     const [selectedImg, setSelectedImg] = useState(null);
 
     const handleImageUpload = async (e) => {
@@ -85,7 +85,12 @@ const ProfilePage = () => {
                                 <span>Member Since</span>
                                 <span>{createdAt.split("T")[0]}</span>
                             </div>
-
+                            { createdAt != updatedAt &&
+                                <div className='flex items-center justify-between py-2 border-b border-zinc-700'>
+                                    <span>Last updated At</span>
+                                    <span>{updatedAt.split("T")[0]}</span>
+                                </div>
+                            }
                             <div className='flex items-center justify-between py-2 border-b border-zinc-700'>
                                 <span>Account Status</span>
                                 <span className='text-green-500'>Active</span>
