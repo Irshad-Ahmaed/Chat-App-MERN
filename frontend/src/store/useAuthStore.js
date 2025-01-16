@@ -2,6 +2,7 @@ import {create} from 'zustand';
 import axiosInstance from '../lib/axios'
 import toast from 'react-hot-toast';
 import { io } from 'socket.io-client';
+import { useChatStore } from './useChatStore';
 
 
 const BASE_URL = import.meta.env.MODE === "development" ? "http://localhost:5000" : "/";
@@ -126,6 +127,16 @@ export const useAuthStore = create((set, get)=> ({
 
         newSocket.on("getOnlineUsers", (userIds)=> {
             set({onlineUsers: userIds})
+        });
+
+        // Listen for receive_message event
+        newSocket.on('receive_message', (data) => { 
+            const addMessage = useChatStore.getState().addMessage; 
+            addMessage(data.message); 
+            // Optionally, show a notification 
+            if (Notification.permission === 'granted') { 
+                new Notification(data.message.content, { body: data.message.content, }); 
+            } 
         });
     },
 

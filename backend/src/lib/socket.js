@@ -2,6 +2,7 @@ import { Server } from "socket.io";
 import http from "http";
 import express from 'express';
 import OnlineAT from "../models/onlineAt.model.js";
+import { console } from "inspector";
 
 const app = express();
 const server = http.createServer(app);
@@ -35,6 +36,17 @@ io.on("connection", async (socket) => {
 
     // io.emit() is used to send a events to all connected clients
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
+
+    // Listen for send_message event
+    socket.on('send_message', async (data) => { 
+        const { message, recipientId } = data;
+        console.log("data", message, recipientId);
+        // Emit the message to the recipient 
+        const recipientSocketId = getReceiverSocketId(recipientId); 
+        if (recipientSocketId) { 
+            io.to(recipientSocketId).emit('receive_message', data); 
+        } 
+    });
 
     socket.on("disconnect", async () => {
         console.log("A user disconnected", socket.id);

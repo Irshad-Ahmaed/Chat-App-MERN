@@ -11,6 +11,11 @@ export const useChatStore = create((set, get)=> ({
     isUserLoading: false,
     isMessagesLoading: false,
 
+    // Function to add new messages to the state 
+    addMessage: (message) => set((state) => ({ 
+        messages: [...state.messages, message] 
+    })),
+    
     getUsers: async()=> {
         set({isUserLoading: true});
         try {
@@ -40,6 +45,9 @@ export const useChatStore = create((set, get)=> ({
         try {
             const res = await axiosInstance.post(`/message/send/${selectedUser._id}`, messageData);
             set({messages:[...messages, res.data]});
+            // Emit send_message event 
+            const socket = useAuthStore.getState().socket;
+            socket.emit('send_message', { message: res.data, recipientId: selectedUser._id });
         } catch (error) {
             toast.error(error.response.data.message);
         }
