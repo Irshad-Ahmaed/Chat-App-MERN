@@ -46,7 +46,6 @@ io.on("connection", async (socket) => {
     // Listen for send_message event
     socket.on('send_message', async (data) => { 
         const { message, recipientId } = data;
-        console.log("data", message, recipientId);
         // Emit the message to the recipient 
         const recipientSocketId = getReceiverSocketId(recipientId); 
         if (recipientSocketId) { 

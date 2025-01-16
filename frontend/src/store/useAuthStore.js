@@ -133,6 +133,7 @@ export const useAuthStore = create((set, get)=> ({
         newSocket.on('receive_message', (data) => {
             // show a notification 
             if (Notification.permission === 'granted') { 
+                console.log("Notification sent");
                 new Notification("New Message", { body: data?.message?.text }); 
             } 
         });
