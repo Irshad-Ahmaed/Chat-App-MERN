@@ -129,13 +129,25 @@ export const useAuthStore = create((set, get)=> ({
             set({onlineUsers: userIds})
         });
 
+        // Request notification permission with service worker
+        if ('serviceWorker' in navigator && 'PushManager' in window) {
+            navigator.serviceWorker.register('/serviceWorker.js')
+            .then((registration) => {
+                console.log('Service Worker registered:', registration);
+            })
+            .catch((error) => console.error('Service Worker registration failed:', error));
+        }
+
         // Listen for receive_message event
         newSocket.on('receive_message', (data) => {
-            // show a notification 
-            if (Notification.permission === 'granted') { 
-                console.log("Notification sent");
-                new Notification("New Message", { body: data?.message?.text }); 
-            } 
+            if (Notification.permission === 'granted') {
+                navigator.serviceWorker.ready.then((registration) => {
+                    registration.showNotification("New Message", {
+                        body: data?.message?.text,
+                        icon: '/vite.svg'  // Make sure to provide a valid icon path
+                    });
+                });
+            }
         });
     },
 

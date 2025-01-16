@@ -8,9 +8,16 @@ const HomePage = () => {
   const { selectedUser } = useChatStore();
   useEffect(() => {
     if (Notification.permission !== 'granted') {
-      Notification.requestPermission();
+        Notification.requestPermission().then(permission => {
+            if (permission === 'granted') {
+                console.log('Notification permission granted');
+            } else {
+                console.log('Notification permission denied');
+            }
+        });
     }
   }, []);
+
 
   return (
     <div className='h-full bg-base-200'>

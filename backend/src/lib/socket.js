@@ -51,6 +51,15 @@ io.on("connection", async (socket) => {
         if (recipientSocketId) { 
             io.to(recipientSocketId).emit('receive_message', data); 
         } 
+        
+        // Emit push notification for offline users (for mobile devices)
+        if (!recipientSocketId) {
+            io.emit('push_notification', {
+                title: "New Message",
+                body: message.text,
+                recipientId
+            });
+        }
     });
 
     socket.on("disconnect", async () => {
