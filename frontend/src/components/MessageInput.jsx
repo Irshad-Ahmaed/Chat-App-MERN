@@ -71,13 +71,18 @@ const MessageInput = () => {
             )}
 
             <form onSubmit={handleSendMessage} className="flex items-center gap-2">
-                <div className="flex-1 flex gap-2 relative items-center">
-                    <input
-                        type="text"
-                        className="w-full input input-bordered rounded-lg input-sm sm:input-md"
+                <div className="flex-1 p-0 textarea textarea-bordered flex gap-2 relative items-center">
+                    <textarea
+                        className="w-[93%] bg-transparent focus:outline-none overflow-hidden leading-tight resize-none input-sm sm:input-md"
                         placeholder="Type a message..."
                         value={text}
                         onChange={(e) => setText(e.target.value)}
+                        rows={1} // Initial height
+                        onInput={(e) => {
+                        const target = e.target;
+                            target.style.height = "auto"; // Reset height
+                            target.style.height = `${target.scrollHeight}px`; // Adjust to content
+                        }}
                     />
                     <input
                         type="file"
@@ -89,7 +94,7 @@ const MessageInput = () => {
 
                     <button
                         type="button"
-                        className={`sm:flex absolute right-2 lg:right-5
+                        className={`sm:flex absolute right-1.5 w-[5.5%] sm:w-[5%] md:w-[4.5%]
                         ${imagePreview ? "text-emerald-500" : "text-zinc-400"}`}
                         onClick={() => fileInputRef.current?.click()}
                     >
