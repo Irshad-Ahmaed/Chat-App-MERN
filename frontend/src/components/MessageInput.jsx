@@ -79,10 +79,11 @@ const MessageInput = () => {
                         onChange={(e) => setText(e.target.value)}
                         rows={1} // Initial height
                         onInput={(e) => {
-                        const target = e.target;
+                            const target = e.target;
                             target.style.height = "auto"; // Reset height
                             target.style.height = `${target.scrollHeight}px`; // Adjust to content
                         }}
+                        style={{ lineHeight: "1.5" }}
                     />
                     <input
                         type="file"
@@ -96,6 +97,7 @@ const MessageInput = () => {
                         type="button"
                         className={`sm:flex absolute right-1.5 w-[5.5%] sm:w-[5%] md:w-[4.5%]
                         ${imagePreview ? "text-emerald-500" : "text-zinc-400"}`}
+                        title="Select Image"
                         onClick={() => fileInputRef.current?.click()}
                     >
                         <Image className='size-4 lg:size-5' />
