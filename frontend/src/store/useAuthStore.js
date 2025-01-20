@@ -3,6 +3,7 @@ import axiosInstance from '../lib/axios'
 import toast from 'react-hot-toast';
 import { io } from 'socket.io-client';
 import { useChatStore } from './useChatStore';
+import { getUserIDFromToken } from '../lib/utils';
 
 
 const BASE_URL = import.meta.env.MODE === "development" ? "http://localhost:5000" : "/";
@@ -79,9 +80,13 @@ export const useAuthStore = create((set, get)=> ({
     logout: async()=> {
         try {
             await axiosInstance.post('/auth/logout');
-            set({authUser: null});
+            const socket = get().socket;
+            if (socket) {
+                socket.emit('logout'); // Inform the server it's a logout event
+                socket.disconnect();
+            }
+            set({ authUser: null, socket: null });
             toast.success("Logout successfully");
-            get().disconnectSocket();
         } catch (error) {
             console.log("error", error);
             toast.error(error.response?.data.message)
@@ -116,15 +121,27 @@ export const useAuthStore = create((set, get)=> ({
         newSocket.connect(); 
         set({socket: newSocket});
 
+        getUserIDFromToken();
+        //  User Connected
         newSocket.on("userConnected", (offlineUsers)=> {
             set({lastTimeUsersOnline: offlineUsers})
         });
 
-        newSocket.on("userDisconnected", ({allUsersOnlineAt})=>{
+        // User Disconnected
+        newSocket.on("userDisconnected", ({allUsersOnlineAt, isLogout})=>{
             console.log("userDisconnected", allUsersOnlineAt);
             set({lastTimeUsersOnline: allUsersOnlineAt})
+
+            // Show notification only if not a logout event
+            if (!isLogout && Notification.permission === 'granted') {
+                new Notification("User Disconnected", {
+                    body: `A user has disconnected from the chat.`,
+                    icon: '/notification-icon.png'
+                });
+            }
         });
 
+        // Get All Online Users
         newSocket.on("getOnlineUsers", (userIds)=> {
             set({onlineUsers: userIds})
         });
@@ -148,6 +165,12 @@ export const useAuthStore = create((set, get)=> ({
                     });
                 });
             }
+        });
+
+        // Handle reconnection
+        newSocket.on("reconnect", () => {
+            console.log("Reconnected to the server");
+            newSocket.emit("rejoin", { userId: authUser._id }); // Inform server of reconnection
         });
     },
 

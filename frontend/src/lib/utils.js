@@ -53,3 +53,29 @@ export function timeAgo(messageTimestamp) {
     }
     return Math.floor(seconds) + " second" + (seconds > 1 ? "s" : "") + " ago";
 }
+
+import Cookies from "js-cookie";
+import { decode as jwtDecode } from "jwt-decode";
+
+export const getUserIDFromToken = () => {
+    // Get the token from cookies
+    const token = Cookies.get("token"); // Replace "authToken" with the actual name of your cookie
+    console.log("token", token)
+    if (token) {
+        try {
+            // Decode the JWT token to get the payload
+            const decodedToken = jwtDecode(token);
+            
+            
+            // Extract userId from the decoded token
+            const userId = decodedToken.userId; // Replace "userId" with the actual key used in your token's payload
+
+            console.log("User ID:", userId);
+        } catch (error) {
+            console.error("Error decoding token:", error);
+        }
+    } else {
+        console.log("No token found");
+    }
+
+}
