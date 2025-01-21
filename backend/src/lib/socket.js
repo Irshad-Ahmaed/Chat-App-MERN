@@ -2,6 +2,8 @@ import { Server } from "socket.io";
 import http from "http";
 import express from 'express';
 import OnlineAT from "../models/onlineAt.model.js";
+import { getPushSubscriptionFromDB } from "./notications.js";
+import webPush from 'web-push';
 
 const app = express();
 const server = http.createServer(app);
@@ -20,32 +22,39 @@ export function getReceiverSocketId(userId) { // return socket id of the user
 // Store Online Users
 const userSocketMap = {}; // {userId: socketId}
 
+/**
+ * Update the online status of a user
+ * @param {string} userId - User ID
+ * @param {boolean} isOnline - User online status
+ */
 
-// Function to update the online status of a user
-async function updateUserOnlineStatus(userId, isOnline) {
-    try {
-        if (isOnline) {
-            // Update the last online time to the current time and mark as online
-            await OnlineAT.findOneAndUpdate(
-                { userId },
-                { lastOnlineAt: new Date(), isOnline: true },
-                { upsert: true, new: true } // Create document if it doesn't exist
-            );
-            console.log("updateUserOnlineStatus: Online", userId)
-        } else {
-            // Mark the user as offline
-            await OnlineAT.findOneAndUpdate(
-                { userId },
-                { isOnline: false, lastOnlineAt: new Date() },
-                { new: true }
-            );
-            console.log("updateUserOnlineStatus: Offline", userId)
-        }
-    } catch (error) {
-        console.error("Failed to update user online status:", error);
-    }
-}
+const sendPushNotification = (subscription, message) => {
+    const options = {
+        TTL: 30, // Time-to-live in seconds
+    };
 
+    // Convert payload to string
+    const payloadString = JSON.stringify({
+        title: 'New Message',
+        body: message.text,
+        icon: '/notification-icon.png',
+    });
+
+    webPush
+        .sendNotification(subscription, payloadString, options)
+        .then((response) => {
+            console.log('Push notification sent successfully:', response);
+        })
+        .catch((error) => {
+            console.error('Error sending push notification:', error);
+        });
+};
+
+/**
+ * Get the recipient's socket ID
+ * @param {string} userId - Recipient's user ID
+ * @returns {string | undefined} - Socket ID of the recipient
+ */
 
 io.on("connection", async (socket) => {
     console.log("A user connected", socket.id);
@@ -64,21 +73,13 @@ io.on("connection", async (socket) => {
         io.to(oldSocketId).emit("duplicate_connection", "You have been disconnected due to a new connection.");
         io.sockets.sockets.get(oldSocketId)?.disconnect(); // Disconnect old socket
     }
-
-    
-        // If user is already connected, disconnect the previous socket
-        // if (userSocketMap[userId]) { 
-        //     io.to(userSocketMap[userId]).emit('duplicate_connection', 'You have been disconnected due to a new connection.'); 
-        //     io.sockets.sockets.get(userSocketMap[userId])?.disconnect(); 
-        // } 
+ 
     userSocketMap[userId] = socket.id;
-    updateUserOnlineStatus(userId, true); // Mark as online
-    
 
     const isUserTimeExists = await OnlineAT.findOne({ userId: userId });
-    if (isUserTimeExists) await OnlineAT.findOneAndUpdate({ userId: userId }, { lastOnlineAt: new Date() }, { new: true });
+    if (isUserTimeExists) await OnlineAT.findOneAndUpdate({ userId: userId }, { lastOnlineAt: new Date(), isOnline: true }, { new: true });
 
-    const usersOnlineAt = await OnlineAT.find({ isOnline: true });
+    const usersOnlineAt = await OnlineAT.find({ userId: { $ne: userId }});
     // Emit an event to notify clients about the disconnection 
     io.emit("userConnected", usersOnlineAt);
 
@@ -93,46 +94,32 @@ io.on("connection", async (socket) => {
         if (recipientSocketId) { 
             io.to(recipientSocketId).emit('receive_message', data); 
         } 
+        else{ // Find the user's push subscription and send a push notification
+            const recipientPushSubscription = await getPushSubscriptionFromDB(recipientId);
         
-        // Emit push notification for offline users (for mobile devices)
-        if (!recipientSocketId) {
-            io.emit('push_notification', {
-                title: "New Message",
-                body: message.text,
-                recipientId
-            });
+            if (recipientPushSubscription) {
+                // Send push notification to the offline user
+                sendPushNotification(recipientPushSubscription, message);
+            }
         }
     });
 
+    // Handle socket disconnection
     socket.on("disconnect", async () => {
         console.log("A user disconnected", socket.id);
         if (userId) {
-            // await OnlineAT.findOneAndUpdate({ userId: userId }, { lastOnlineAt: new Date() }, { new: true });
+            await OnlineAT.findOneAndUpdate({ userId: userId }, { lastOnlineAt: new Date(), isOnline: false }, { new: true });
             delete userSocketMap[userId];
-            updateUserOnlineStatus(userId, false); // Mark as offline
 
             const allUsersOnlineAt = await OnlineAT.find({});
             const isLogout = socket.isLogout || false; // Track logout state
+
             // // Emit an event to notify clients about the disconnection 
             io.emit("userDisconnected", { allUsersOnlineAt, isLogout });
 
             io.emit("getOnlineUsers", Object.keys(userSocketMap));
         }
     });
-
-    // Handling Logout Event
-    socket.on('logout', () => {
-        socket.isLogout = true;
-        socket.disconnect();
-    });
-
-    socket.on("rejoin", ({ userId }) => {
-        console.log(`User rejoined: ${userId}`);
-        userSocketMap[userId] = socket.id;
-        updateUserOnlineStatus(userId, true); // Mark user as online again
-        io.emit("userConnected", { userId });
-    });
-    
 });
 
 export { io, app, server };

@@ -1,14 +1,12 @@
-import {create} from 'zustand';
-import axiosInstance from '../lib/axios'
+import { create } from 'zustand';
+import axiosInstance from '../lib/axios';
 import toast from 'react-hot-toast';
 import { io } from 'socket.io-client';
-import { useChatStore } from './useChatStore';
-import { getUserIDFromToken } from '../lib/utils';
 
-
+const publicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
 const BASE_URL = import.meta.env.MODE === "development" ? "http://localhost:5000" : "/";
 
-export const useAuthStore = create((set, get)=> ({
+export const useAuthStore = create((set, get) => ({
     authUser: null,
     createdAt: null,
     updatedAt: null,
@@ -22,137 +20,181 @@ export const useAuthStore = create((set, get)=> ({
     lastOnlineAt: null,
 
     setLastTimeUsersOnline: (users) => set({ lastTimeUsersOnline: users }),
-    
-    checkAuth: async()=> {
+
+    checkAuth: async () => {
         try {
             const res = await axiosInstance.get("/auth/check");
             set({
                 authUser: res.data.user,
-                createdAt: res.data.user.createdAt, 
+                createdAt: res.data.user.createdAt,
                 updatedAt: res.data.user.updatedAt,
                 // lastTimeUsersOnline: res.data.usersOnlineAt,
             });
-            console.log("res", res.data)
+            console.log("res", res);
             get().connectSocket();
         } catch (error) {
-            console.log(error)
-            set({authUser: null});
-        } finally{
-            set({isCheckingAuth: false});
+            console.log(error);
+            set({ authUser: null });
+        } finally {
+            set({ isCheckingAuth: false });
         }
     },
 
-    signup: async(data)=> {
-        set({isSigningUp: true});
+    signup: async (data) => {
+        set({ isSigningUp: true });
         try {
             const res = await axiosInstance.post('/auth/signup', data);
-            set({authUser: res.data});
-            toast.success("Account created successfully")  
+            set({ authUser: res.data });
+            toast.success("Account created successfully");
 
             get().connectSocket();
         } catch (error) {
             toast.error(error.response.data.message);
         } finally {
-            set({isSigningUp: false});
+            set({ isSigningUp: false });
         }
     },
 
-    login: async(data)=> {
-        set({isLoggingIn: true});
+    login: async (data) => {
+        set({ isLoggingIn: true });
         try {
             const res = await axiosInstance.post('/auth/login', data);
             set({
                 authUser: res.data,
-                createdAt: res.data.createdAt, 
+                createdAt: res.data.createdAt,
                 updatedAt: res.data.updatedAt
             });
             toast.success("Logged in successfully");
-            
+
             // window.location.reload();
             get().connectSocket();
         } catch (error) {
-            toast.error(error.response.data.message);
+            toast.error(error?.response?.data?.message);
         } finally {
-            set({isLoggingIn: false});
+            set({ isLoggingIn: false });
         }
     },
 
-    logout: async()=> {
+    logout: async () => {
         try {
             await axiosInstance.post('/auth/logout');
             const socket = get().socket;
             if (socket) {
-                socket.emit('logout'); // Inform the server it's a logout event
                 socket.disconnect();
             }
             set({ authUser: null, socket: null });
             toast.success("Logout successfully");
         } catch (error) {
             console.log("error", error);
-            toast.error(error.response?.data.message)
+            toast.error(error.response?.data.message);
         }
     },
 
-    updateProfile: async(data) => {
-        set({isUpdatingProfile: true});
+    updateProfile: async (data) => {
+        set({ isUpdatingProfile: true });
         try {
             const res = await axiosInstance.put("/auth/update-profile", data);
-            set({authUser: res.data});
-            set({updatedAt: res.data.updatedAt});
+            set({ authUser: res.data });
+            set({ updatedAt: res.data.updatedAt });
             toast.success("Profile updated successfully");
         } catch (error) {
             console.log("Error in updating profile", error);
             toast.error(error.response.data.message);
         } finally {
-            set({isUpdatingProfile: false});
+            set({ isUpdatingProfile: false });
         }
     },
 
-    connectSocket: ()=> {
-        const {authUser} = get();
-        if(!authUser || get().socket?.connected) return;
+    connectSocket: () => {
+        const { authUser } = get();
+        if (!authUser || get().socket?.connected) return;
 
-        const newSocket = io(BASE_URL,{
-            query:{
+        const newSocket = io(BASE_URL, {
+            query: {
                 userId: authUser._id,
             },
         });
 
-        newSocket.connect(); 
-        set({socket: newSocket});
+        newSocket.connect();
+        set({ socket: newSocket });
 
-        getUserIDFromToken();
         //  User Connected
-        newSocket.on("userConnected", (offlineUsers)=> {
-            set({lastTimeUsersOnline: offlineUsers})
+        newSocket.on("userConnected", (offlineUsers) => {
+            set({ lastTimeUsersOnline: offlineUsers });
         });
 
         // User Disconnected
-        newSocket.on("userDisconnected", ({allUsersOnlineAt, isLogout})=>{
+        newSocket.on("userDisconnected", ({ allUsersOnlineAt, isLogout }) => {
             console.log("userDisconnected", allUsersOnlineAt);
-            set({lastTimeUsersOnline: allUsersOnlineAt})
+            set({ lastTimeUsersOnline: allUsersOnlineAt });
+        });
 
-            // Show notification only if not a logout event
-            if (!isLogout && Notification.permission === 'granted') {
-                new Notification("User Disconnected", {
-                    body: `A user has disconnected from the chat.`,
-                    icon: '/notification-icon.png'
+        // Get All Online Users
+        newSocket.on("getOnlineUsers", (userIds) => {
+            set({ onlineUsers: userIds });
+        });
+
+        // Listen for push notification event (when user is offline)
+        newSocket.on('push_notification', (data) => {
+            if (Notification.permission === 'granted') {
+                // If the app is in the background or closed, use Service Worker to show notification
+                navigator.serviceWorker.ready.then((registration) => {
+                    registration.showNotification(data.title, {
+                        body: data.body,
+                        icon: '/vite.svg',  // Make sure to provide a valid icon path
+                    });
                 });
             }
         });
 
-        // Get All Online Users
-        newSocket.on("getOnlineUsers", (userIds)=> {
-            set({onlineUsers: userIds})
-        });
-
-        // Request notification permission with service worker
+        // Register service worker and request notification permission
         if ('serviceWorker' in navigator && 'PushManager' in window) {
             navigator.serviceWorker.register('/serviceWorker.js')
-            .then((registration) => {
-                console.log('Service Worker registered:', registration);
+                .then((registration) => {
+                    console.log('Service Worker registered:', registration);
+
+                    // Ask for notification permission
+                    Notification.requestPermission().then(permission => {
+                        if (permission === 'granted') {
+                            console.log('Notification permission granted.');
+                            // After permission is granted, subscribe to push notifications
+                            subscribeToPushNotifications(registration);
+                        } else {
+                            console.error('Notification permission denied.');
+                        }
+                    });
+                })
+                .catch((error) => {
+                    console.error('Service Worker registration failed:', error);
+                });
+        }
+
+        // Subscribe to push notifications
+        function subscribeToPushNotifications(registration) {
+            registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: publicKey,
             })
-            .catch((error) => console.error('Service Worker registration failed:', error));
+            .then((subscription) => {
+                console.log('Push subscription:', subscription);
+                // Send subscription to backend to save it
+                sendSubscriptionToServer(subscription);
+            })
+            .catch((error) => {
+                console.error('Push subscription failed:', error);
+            });
+        }
+
+        // Send subscription to backend
+        const sendSubscriptionToServer = async(subscription) => {
+            console.log('subscription', subscription);
+            const userId = authUser._id;
+            await axiosInstance.post('/notification/save-push-subscription', {subscription, userId})
+            .then((response) => {
+                console.log('Push subscription saved to server');
+            }).catch((error) => {
+                console.error('Error saving push subscription:', error);
+            });
         }
 
         // Listen for receive_message event
@@ -166,18 +208,12 @@ export const useAuthStore = create((set, get)=> ({
                 });
             }
         });
-
-        // Handle reconnection
-        newSocket.on("reconnect", () => {
-            console.log("Reconnected to the server");
-            newSocket.emit("rejoin", { userId: authUser._id }); // Inform server of reconnection
-        });
     },
 
-    disconnectSocket: ()=> {
+    disconnectSocket: () => {
         const socket = get().socket;
-        
-        if(socket?.connected) {
+
+        if (socket?.connected) {
             socket.disconnect();
             set({ socket: null, onlineUsers: [] });  // Reset online users on disconnect
         }

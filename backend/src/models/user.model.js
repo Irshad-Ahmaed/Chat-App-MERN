@@ -28,6 +28,18 @@ const userSchema = new mongoose.Schema(
             type: Schema.Types.ObjectId,
             ref: "User"
         }],
+        isOnline: {
+            type: Boolean,
+            default: false,
+        },
+        lastOnlineAt: {
+            type: Date,
+            default: null,
+        },
+        pushSubscription: {
+            type: Object, // Contains subscription details for push notifications
+            default: null,
+        },
     },
     {
         timestamps:  true
