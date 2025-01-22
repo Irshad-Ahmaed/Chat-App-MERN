@@ -114,7 +114,7 @@ io.on("connection", async (socket) => {
             const allUsersOnlineAt = await OnlineAT.find({});
             const isLogout = socket.isLogout || false; // Track logout state
 
-            // // Emit an event to notify clients about the disconnection 
+            // Emit an event to notify clients about the disconnection 
             io.emit("userDisconnected", { allUsersOnlineAt, isLogout });
 
             io.emit("getOnlineUsers", Object.keys(userSocketMap));
