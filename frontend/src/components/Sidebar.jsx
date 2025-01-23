@@ -7,7 +7,7 @@ import { useAuthStore } from "../store/useAuthStore";
 const Sidebar = () => {
   const { getUsers, users, selectedUser, setSelectedUser, isUserLoading, messages, isMessagesLoading } = useChatStore();
 
-  const {onlineUsers} = useAuthStore();
+  const {onlineUsers, toWhomYouTyping, isTyping} = useAuthStore();
   const [showOnlineOnly, setShowOnlineOnly] = useState(false);
 
   useEffect(() => {
@@ -70,8 +70,11 @@ const Sidebar = () => {
             {/* User info - only visible on larger screens */}
             <div className="block lg:block text-left min-w-0">
               <div className="font-medium truncate">{user.fullName}</div>
-              <div className="text-sm text-zinc-400">
+              <div className="flex gap-2 text-sm text-zinc-400">
                 {onlineUsers.includes(user._id) ? "Online" : "Offline"}
+                {
+                  isTyping && user._id == toWhomYouTyping && <span className="text-green-500">typing</span>
+                }
               </div>
             </div>
           </button>

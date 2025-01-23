@@ -2,6 +2,7 @@ import { Server } from "socket.io";
 import http from "http";
 import express from 'express';
 import OnlineAT from "../models/onlineAt.model.js";
+import User from "../models/user.model.js";
 import { getPushSubscriptionFromDB } from "./notications.js";
 import webPush from 'web-push';
 
@@ -86,6 +87,7 @@ io.on("connection", async (socket) => {
     // io.emit() is used to send a events to all connected clients
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
 
+    
     // Listen for send_message event
     socket.on('send_message', async (data) => { 
         const { message, recipientId } = data;
@@ -103,6 +105,23 @@ io.on("connection", async (socket) => {
             }
         }
     });
+
+
+    // Listen for typing events
+    socket.on("typing", async({ recipientId }) => {
+        const recipientSocketId = getReceiverSocketId(recipientId);
+        if (recipientSocketId) {
+            io.to(recipientSocketId).emit("user_typing", { userId, isTyping: true });
+        }
+    });
+
+    socket.on("stop_typing", async({ recipientId }) => {
+        const recipientSocketId = getReceiverSocketId(recipientId);
+        if (recipientSocketId) {
+            io.to(recipientSocketId).emit("user_typing", { userId, isTyping: false });
+        }
+    });
+
 
     // Handle socket disconnection
     socket.on("disconnect", async () => {

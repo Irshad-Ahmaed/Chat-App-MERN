@@ -16,6 +16,8 @@ export const useAuthStore = create((set, get) => ({
     isCheckingAuth: true,
     onlineUsers: [],
     socket: null,
+    isTyping: false,
+    toWhomYouTyping: null,
     lastTimeUsersOnline: [],
     lastOnlineAt: null,
 
@@ -120,7 +122,7 @@ export const useAuthStore = create((set, get) => ({
 
         //  User Connected
         newSocket.on("userConnected", (offlineUsers) => {
-            set({ lastTimeUsersOnline: offlineUsers });
+            set({ lastTimeUsersOnline: offlineUsers, isTyping: false });
         });
 
         // User Disconnected
@@ -197,6 +199,7 @@ export const useAuthStore = create((set, get) => ({
             });
         }
 
+
         // Listen for receive_message event
         newSocket.on('receive_message', (data) => {
             if (Notification.permission === 'granted') {
@@ -207,6 +210,12 @@ export const useAuthStore = create((set, get) => ({
                     });
                 });
             }
+        });
+
+        
+        // Handle user typing events
+        newSocket.on("user_typing", ({ userId, isTyping }) => {
+            set({ isTyping: isTyping, toWhomYouTyping: userId });
         });
     },
 

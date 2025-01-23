@@ -32,6 +32,10 @@ const userSchema = new mongoose.Schema(
             type: Object, // Contains subscription details for push notifications
             default: null,
         },
+        isTyping:{
+            type: Boolean,
+            default: false
+        },
     },
     {
         timestamps:  true

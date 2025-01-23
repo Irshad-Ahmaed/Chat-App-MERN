@@ -53,6 +53,24 @@ export const useChatStore = create((set, get)=> ({
         }
     },
 
+    // User Typing socket function
+    startTyping: () => {
+        const { selectedUser } = get();
+        const socket = useAuthStore.getState().socket;
+        console.log("socket", socket, selectedUser);
+        if (socket) {
+            socket.emit("typing", { recipientId: selectedUser._id });
+        }
+    },
+    stopTyping: () => {
+        const { selectedUser } = get();
+        const socket = useAuthStore.getState().socket;
+        if (socket) {
+            socket.emit("stop_typing", { recipientId: selectedUser._id });
+        }
+    },    
+
+    // Subscribe to get the messages of other User to you
     subscribeToMessages: ()=> {
         const {selectedUser} = get();
         if(!selectedUser) return;
@@ -65,6 +83,7 @@ export const useChatStore = create((set, get)=> ({
         });
     },
 
+    // Disconnect from getting messages
     unsubscribeToMessages: ()=> {
         const socket = useAuthStore.getState().socket;
         if (socket?.connected) {
