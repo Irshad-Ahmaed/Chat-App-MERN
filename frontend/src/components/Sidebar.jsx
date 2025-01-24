@@ -73,7 +73,7 @@ const Sidebar = () => {
               <div className="flex gap-2 text-sm text-zinc-400">
                 {onlineUsers.includes(user._id) ? "Online" : "Offline"}
                 {
-                  isTyping && user._id == toWhomYouTyping && <span className="text-green-500">typing</span>
+                  isTyping && user._id == toWhomYouTyping && <span className="text-green-600">typing...</span>
                 }
               </div>
             </div>
