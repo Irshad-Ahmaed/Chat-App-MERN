@@ -11,7 +11,7 @@ import { app, server } from './lib/socket.js';
 import webPush from 'web-push';
 
 
-dotenv.config()
+dotenv.config();
 
 
 const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY;
@@ -32,12 +32,13 @@ const PORT = process.env.PORT;
 app.use(express.json()); // Extract the json data from the body, when we do req.body in controller
 app.use(cookieParser()); // It's allow you to parse the cookies, in protectRoute.js
 
-app.use(
-    cors({
-        origin: ['http://localhost:5173', 'https://chat-app-mern-n3be.vercel.app',],
-        credentials: true,
-    })
-);
+const corsConfig = {
+    origin: process.env.CLIENT_URL,
+    credentials: true,
+    method: ["GET", "POST", "DELETE", "PUT"],
+};
+app.options("", cors(corsConfig));
+app.use(cors(corsConfig));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/notification", notificationRoutes);
@@ -51,7 +52,7 @@ app.use("/api/message", messageRoutes);
 //     })
 // }
 
-server.listen(PORT, ()=> {
+server.listen(PORT, () => {
     console.log("Server is running on port:" + PORT);
     connectDB();
-})
+});
