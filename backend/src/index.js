@@ -40,6 +40,8 @@ app.use(
     })
 );
 
+app.options('*', cors()); // Allow preflight requests for all routes
+
 app.use("/api/auth", authRoutes);
 app.use("/api/notification", notificationRoutes);
 app.use("/api/message", messageRoutes);
