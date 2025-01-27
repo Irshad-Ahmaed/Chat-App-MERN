@@ -34,7 +34,7 @@ app.use(cookieParser()); // It's allow you to parse the cookies, in protectRoute
 
 app.use(
     cors({
-        origin: ['http://localhost:5173', 'https://chat-app-mern-dtjf.vercel.app/'],
+        origin: ['http://localhost:5173', 'https://chat-app-mern-dtjf.vercel.app/',],
         credentials: true,
     })
 );
