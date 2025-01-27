@@ -7,7 +7,7 @@ import { connectDB } from './lib/db.js';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import { app, server } from './lib/socket.js';
-import path from 'path';
+// import path from 'path';
 import webPush from 'web-push';
 
 
@@ -27,31 +27,29 @@ webPush.setVapidDetails(
 // const app = express(); // Removed because created on socket.js
 
 const PORT = process.env.PORT;
-const __dirname = path.resolve();
+// const __dirname = path.resolve();
 
 app.use(express.json()); // Extract the json data from the body, when we do req.body in controller
 app.use(cookieParser()); // It's allow you to parse the cookies, in protectRoute.js
 
 app.use(
     cors({
-        origin: ['https://chat-app-mern-n3be.vercel.app',''],
+        origin: ['http://localhost:5173', 'https://chat-app-mern-n3be.vercel.app',],
         credentials: true,
     })
 );
-
-// app.options('*', cors()); // Allow preflight requests for all routes
 
 app.use("/api/auth", authRoutes);
 app.use("/api/notification", notificationRoutes);
 app.use("/api/message", messageRoutes);
 
-if(process.env.NODE_ENV === "production"){
-    app.use(express.static(path.join(__dirname, "../frontend/dist")));
+// if(process.env.NODE_ENV === "production"){
+//     app.use(express.static(path.join(__dirname, "../frontend/dist")));
 
-    app.get("*", (req, res)=> {
-        res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
-    })
-}
+//     app.get("*", (req, res)=> {
+//         res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
+//     })
+// }
 
 server.listen(PORT, ()=> {
     console.log("Server is running on port:" + PORT);
