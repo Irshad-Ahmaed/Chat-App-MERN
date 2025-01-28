@@ -34,10 +34,14 @@ app.use(cookieParser()); // It's allow you to parse the cookies, in protectRoute
 
 app.use(
     cors({
-        origin: '*',
-        credentials: true,
+        origin: ['https://chat-app-mern-6hob.vercel.app', 'http://localhost:5173'],
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Methods allowed
+        credentials: true, // Allow credentials (cookies, etc.) to be sent
     })
 );
+
+// Allow preflight requests for all routes
+app.options('*', cors());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/notification", notificationRoutes);
