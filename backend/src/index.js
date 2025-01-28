@@ -7,10 +7,11 @@ import { connectDB } from './lib/db.js';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import { app, server } from './lib/socket.js';
+import path from 'path';
 import webPush from 'web-push';
 
 
-dotenv.config();
+dotenv.config()
 
 
 const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY;
@@ -23,24 +24,34 @@ webPush.setVapidDetails(
 );
 
 
+// const app = express(); // Removed because created on socket.js
+
 const PORT = process.env.PORT;
+const __dirname = path.resolve();
 
 app.use(express.json()); // Extract the json data from the body, when we do req.body in controller
 app.use(cookieParser()); // It's allow you to parse the cookies, in protectRoute.js
 
-const corsConfig = {
-    origin: process.env.CLIENT_URL,
-    credentials: true,
-    method: ["GET", "POST", "DELETE", "PUT" , "OPTIONS"],
-};
-app.options("", cors(corsConfig));
-app.use(cors(corsConfig));
+app.use(
+    cors({
+        origin: '*',
+        credentials: true,
+    })
+);
 
 app.use("/api/auth", authRoutes);
 app.use("/api/notification", notificationRoutes);
 app.use("/api/message", messageRoutes);
 
-server.listen(PORT, () => {
+if(process.env.NODE_ENV === "production"){
+    app.use(express.static(path.join(__dirname, "../frontend/dist")));
+
+    app.get("*", (req, res)=> {
+        res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
+    })
+}
+
+server.listen(PORT, ()=> {
     console.log("Server is running on port:" + PORT);
     connectDB();
-});
+})
