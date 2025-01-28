@@ -57,7 +57,7 @@ export const login = async(req, res)=> {
             return res.status(400).json({message: "All fields are required"});
         }
 
-        const user = await User.findOne({email});
+        const user = await User.findOne({email}).lean();
         if(!user){
             return res.status(400).json({message: "Invalid credentials"});
         }
@@ -69,14 +69,20 @@ export const login = async(req, res)=> {
 
         generateToken(user._id, res);
 
-        const isUserTimeExists = await OnlineAT.findOne({userId: user._id})
-        if(!isUserTimeExists){
-            const userLastOnline = new OnlineAT({
-                userId: user._id,
-                lastOnlineAt: new Date(),
-            });
-            await userLastOnline.save();
-        }
+        // const isUserTimeExists = await OnlineAT.findOne({userId: user._id})
+        // if(!isUserTimeExists){
+        //     const userLastOnline = new OnlineAT({
+        //         userId: user._id,
+        //         lastOnlineAt: new Date(),
+        //     });
+        //     await userLastOnline.save();
+        // }
+
+        const onlineStatus = await OnlineAT.findOneAndUpdate(
+            { userId: user._id },
+            { lastOnlineAt: new Date() },
+            { upsert: true, new: true }
+        );
 
         res.status(200).json({
             _id: user._id,
