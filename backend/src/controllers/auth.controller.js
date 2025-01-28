@@ -30,7 +30,7 @@ export const signup = async (req, res)=> {
         });
 
         if(newUser){
-            await generateToken(newUser._id, res);
+            generateToken(newUser._id, res);
             await newUser.save();
             
             res.status(201).json({
@@ -53,12 +53,12 @@ export const login = async(req, res)=> {
     const {email, password} = req.body;
 
     try {
-        console.time('Login Function');
         if(!email || !password){
             return res.status(400).json({message: "All fields are required"});
         }
 
         const user = await User.findOne({email});
+
         if(!user){
             return res.status(400).json({message: "Invalid credentials"});
         }
@@ -67,24 +67,15 @@ export const login = async(req, res)=> {
         if(!isPasswordCorrect){
             return res.status(400).json({message: "Invalid credentials"});
         }
-        console.timeEnd('Generating token');
-        await generateToken(user._id, res);
 
-        // const isUserTimeExists = await OnlineAT.findOne({userId: user._id})
-        // if(!isUserTimeExists){
-        //     const userLastOnline = new OnlineAT({
-        //         userId: user._id,
-        //         lastOnlineAt: new Date(),
-        //     });
-        //     await userLastOnline.save();
-        // }
-        console.time('Login Function');
+        generateToken(user._id, res);
+
         await OnlineAT.findOneAndUpdate(
             { userId: user._id },
             { lastOnlineAt: new Date() },
             { upsert: true, new: true }
         );
-        console.timeEnd('Login Function 2');
+
         res.status(200).json({
             _id: user._id,
             fullName: user.fullName,
