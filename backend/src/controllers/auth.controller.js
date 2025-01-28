@@ -78,7 +78,7 @@ export const login = async(req, res)=> {
         //     await userLastOnline.save();
         // }
 
-        const onlineStatus = await OnlineAT.findOneAndUpdate(
+        await OnlineAT.findOneAndUpdate(
             { userId: user._id },
             { lastOnlineAt: new Date() },
             { upsert: true, new: true }
