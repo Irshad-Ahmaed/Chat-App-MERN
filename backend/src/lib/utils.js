@@ -10,8 +10,6 @@ export const generateToken = (userId, res) => {
     res.cookie("token", token, {
         maxAge: 7 * 24 * 60 *60 *1000,
         httpOnly: true, //prevent xSS attacks cross-site scripting attacks
-        sameSite: "none", // CSRF attacks cross-site request forgery attacks
-        secure: process.env.Node_ENV !== "development",
     });
     
     return token;
