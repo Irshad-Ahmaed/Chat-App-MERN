@@ -30,7 +30,7 @@ export const signup = async (req, res)=> {
         });
 
         if(newUser){
-            generateToken(newUser._id, res);
+            await generateToken(newUser._id, res);
             await newUser.save();
             
             res.status(201).json({
@@ -67,7 +67,7 @@ export const login = async(req, res)=> {
             return res.status(400).json({message: "Invalid credentials"});
         }
 
-        generateToken(user._id, res);
+        await generateToken(user._id, res);
 
         // const isUserTimeExists = await OnlineAT.findOne({userId: user._id})
         // if(!isUserTimeExists){
