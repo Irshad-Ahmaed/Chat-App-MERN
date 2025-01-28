@@ -16,7 +16,7 @@ export const signup = async (req, res)=> {
             return res.status(400).json({message: "Password is too short"});
         }
 
-        const user = await User.findOne({email: email}).lean();
+        const user = await User.findOne({email: email});
 
         if(user) return res.status(400).json({message: "User already exists"});
 
@@ -58,7 +58,7 @@ export const login = async(req, res)=> {
             return res.status(400).json({message: "All fields are required"});
         }
 
-        const user = await User.findOne({email}).lean();
+        const user = await User.findOne({email});
         if(!user){
             return res.status(400).json({message: "Invalid credentials"});
         }
